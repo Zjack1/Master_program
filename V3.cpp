@@ -33,13 +33,50 @@ int bSums(Mat src)
 
 
 
+
+
+
+//int main(int argc, char** argv)
+//{
+//	Mat src = imread("5.jpg");
+//	if (src.empty())
+//	{
+//		printf("could not load image...\n");
+//	}
+//	imshow("input", src);
+//	Mat gray, binary;
+//	cvtColor(src, gray, COLOR_BGR2GRAY);
+//	threshold(gray, binary, 0, 255, THRESH_OTSU);
+//
+//
+//	// 
+//	//Mat k = getStructuringElement(MORPH_RECT, Size(3, 3), Point(-1, -1));
+//	//morphologyEx(binary, binary, MORPH_OPEN, k);
+//	//morphologyEx(binary, binary, MORPH_CLOSE, k);
+//	imshow("binary", binary);
+//
+//	//cvtColor(src, src, COLOR_BGR2GRAY);
+//	//threshold(src, src, 0, 255, THRESH_BINARY | THRESH_OTSU);
+//	//int a = bSums(src);
+//	//imshow("A", src);
+//	//cout << "A:" << a;
+//
+//
+//	waitKey(0);
+//	return 0;
+//
+//}
+
+
+
+
 #ifdef A
 
 void connected_component_demo(Mat &image);
 void connected_component_stats_demo(Mat &image);
 int main(int argc, char** argv) 
 {
-	Mat src = imread("2.jpg");
+	Mat src = imread("8.jpg");
 	if (src.empty()) 
 	{
 		printf("could not load image...\n");
@@ -61,12 +98,12 @@ int main(int argc, char** argv)
 
 void connected_component_demo(Mat &image) 
 {
-	// 二值化
+	// 
 	Mat gray, binary;
 	cvtColor(image, gray, COLOR_BGR2GRAY);
 	threshold(gray, binary, 0, 255, THRESH_BINARY | THRESH_OTSU);
 
-	// 形态学操作
+	// 
 	Mat k = getStructuringElement(MORPH_RECT, Size(1, 1), Point(-1, -1));
 	morphologyEx(binary, binary, MORPH_OPEN, k);
 	morphologyEx(binary, binary, MORPH_CLOSE, k);
@@ -109,14 +146,14 @@ void connected_component_stats_demo(Mat &image)
 	// 
 	Mat gray, binary;
 	cvtColor(image, gray, COLOR_BGR2GRAY);
-	threshold(gray, binary, 0, 255,  THRESH_OTSU);
+	threshold(gray, binary, 0, 255, THRESH_BINARY | THRESH_OTSU);
 
 
 	// 
-	Mat k = getStructuringElement(MORPH_RECT, Size(3, 3), Point(-1, -1));
-	morphologyEx(binary, binary, MORPH_OPEN, k);
-	morphologyEx(binary, binary, MORPH_CLOSE, k);
-	//imshow("binary", binary);
+	//Mat k = getStructuringElement(MORPH_RECT, Size(3, 3), Point(-1, -1));
+	//morphologyEx(binary, binary, MORPH_OPEN, k);
+	//morphologyEx(binary, binary, MORPH_CLOSE, k);
+	imshow("binary", binary);
 
 
 	Mat labels = Mat::zeros(image.size(), CV_32S);//和原图一样大的标记图
@@ -138,7 +175,8 @@ void connected_component_stats_demo(Mat &image)
 	}
 
 	// render result
-	Mat dst = image;
+	Mat dst = binary;
+	Mat d = image;
 	//Mat dst = Mat::zeros(image.size(), image.type());
 	int w = image.cols;
 	int h = image.rows;
@@ -156,6 +194,7 @@ void connected_component_stats_demo(Mat &image)
 
 	for (int i = 1; i < num_labels; i++) 
 	{
+
 		Vec2d pt = centroids.at<Vec2d>(i, 0);
 		int x = stats.at<int>(i, CC_STAT_LEFT);
 		int y = stats.at<int>(i, CC_STAT_TOP);
@@ -169,8 +208,12 @@ void connected_component_stats_demo(Mat &image)
 		//printf("area : %d, center point(%.2f, %.2f)\n", area, pt[0], pt[1]);
 
 
+		circle(d, Point(pt[0], pt[1]), 2, Scalar(255, 0, 255), -1, 8, 0);
+		rectangle(d, Rect(x-2, y-2, width+5, height+5), Scalar(255, 0, 0), 1, 8, 0);
+		///////---------------
 		circle(dst, Point(pt[0], pt[1]), 2, Scalar(255, 0, 255), -1, 8, 0);
-		rectangle(dst, Rect(x-2, y-2, width+5, height+5), Scalar(255, 0, 0), 1, 8, 0);
+		rectangle(dst, Rect(x - 2, y - 2, width + 4, height + 4), Scalar(255, 0, 0), 1, 8, 0);
+
 		if (area > width*height*0.5)
 		{
 			
@@ -180,10 +223,14 @@ void connected_component_stats_demo(Mat &image)
 			sprintf(text, "%s:%0.2f", "fleck", score);
 			int font_face = cv::FONT_HERSHEY_COMPLEX;
 			double font_scale = 0.5;
-			cv::putText(dst, cv::String(text), cv::Point(x, y - 5), font_scale, font_scale, cv::Scalar(0, 0, 255));
+			cv::putText(d, cv::String(text), cv::Point(x, y - 5), font_scale,
+				font_scale, cv::Scalar(0, 0, 255));
+			///////add other picture---------------
+			cv::putText(dst, cv::String(text), cv::Point(x, y - 5), font_scale,font_scale, cv::Scalar(0, 0, 255));
 
 
-			std::cout <<"num "<< i << "   fleck " << "area " << ": " << area << "    center point: " << (int)pt[0] << "  "
+			std::cout <<"num "<< i << "   fleck " << "area " << ": " 
+				<< area << "    center point: " << (int)pt[0] << "  "
 				<< (int)pt[1]<<"     diameter: "<<(int)(width+height)/2 << std::endl;
 		}
 		else
@@ -194,9 +241,15 @@ void connected_component_stats_demo(Mat &image)
 			sprintf(text, "%s:%0.2f", "scratch", score);
 			int font_face = cv::FONT_HERSHEY_COMPLEX;
 			double font_scale = 0.5;
-			cv::putText(dst, cv::String(text), cv::Point(x, y - 5), font_scale, font_scale, cv::Scalar(0, 0, 255));
 
-			std::cout << "num " << i << "   scratch " << "area " << ": " << area << "    center point: " << (int)pt[0] << "  " << (int)pt[1] <<
+
+			cv::putText(d, cv::String(text), cv::Point(x, y - 5), font_scale,
+				font_scale, cv::Scalar(0, 0, 255));
+			///////add other picture---------------
+			cv::putText(dst, cv::String(text), cv::Point(x, y - 5), font_scale,font_scale, cv::Scalar(0, 0, 255));
+
+			std::cout << "num " << i << "   scratch " << "area " << ": " << area 
+				<< "    center point: " << (int)pt[0] << "  " << (int)pt[1] <<
 				"     length: " << (int)sqrt(width*width + height*height) << std::endl;
 		}
 	}
@@ -205,8 +258,8 @@ void connected_component_stats_demo(Mat &image)
 	std::cout << "scratch num: " << scratch_num << std::endl;
 	std::cout << "area sum: " << area_sum << std::endl;
 	std::cout << "percent of area: " << (float)((float)area_sum/(w*h))*100 <<"%"<< std::endl;
-	cv::imshow("demo", dst);
-
+	cv::imshow("demo", d);
+	//cv::imshow("demo2", dst);
 	//imwrite("D:/ccla_stats_dst.png", dst);
 }
 
@@ -303,7 +356,7 @@ int** on_trackbar(){
 
 	IplImage *SrcImage_or;
 	CvSize src_sz;
-	////===============================================================================================
+	////=================================================================
 	//载入原图
 	IplImage *SrcImage_origin = cvLoadImage(SrcPath, CV_LOAD_IMAGE_UNCHANGED);
 
@@ -328,7 +381,7 @@ int** on_trackbar(){
 	cvThreshold(g_GrayImage, g_BinaryImage, picture.threshold_value_binaryzation, 255, CV_THRESH_BINARY);
 	//显示二值化后的图片
 	//// cvShowImage(WindowBinaryTitle, g_BinaryImage);
-	////===============================================================================================图像膨胀腐蚀
+	////=============================================================图像膨胀腐蚀
 
 
 	//g_BinaryImage = cvCloneImage(g_BinaryImage);  //// 膨胀腐蚀
